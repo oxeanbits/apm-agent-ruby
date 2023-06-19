@@ -94,7 +94,9 @@ module ElasticAPM
       :outcome,
       :sampled,
       :sample_rate,
-      :started_spans
+      :started_spans,
+      :clock_start, 
+      :timestamp
     )
 
     attr_reader(
@@ -106,7 +108,9 @@ module ElasticAPM
       :framework_name,
       :notifications,
       :self_time,
+      :sample_rate,
       :span_frames_min_duration,
+      :started_spans,
       :timestamp,
       :trace_context,
       :transaction_max_spans,
