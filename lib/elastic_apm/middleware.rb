@@ -17,6 +17,7 @@
 
 #
 # frozen_string_literal: true
+require 'elastic_apm/metrics/request_metrics'
 
 module ElasticAPM
   # @api private
@@ -32,6 +33,8 @@ module ElasticAPM
         if running? && !path_ignored?(env)
           transaction = start_transaction(env)
         end
+
+        register_queue_time(transaction, env) if transaction
 
         resp = @app.call env
       rescue InternalError
@@ -96,6 +99,22 @@ module ElasticAPM
 
     def config
       @config ||= ElasticAPM.agent.config
+    end
+
+    def register_queue_time(transaction, env)
+      request_metrics = RequestMetrics.new(env)
+      queue_time_micros = request_metrics.queue_time_micros
+      return if queue_time_micros.zero?
+
+      transaction.clock_start -= queue_time_micros
+      transaction.timestamp -= queue_time_micros # 350ms before
+
+      span = ElasticAPM.start_span 'Queue Time', 'queue', subtype: 'nginx', action: 'awaiting'
+
+      span.clock_start = transaction.clock_start
+      span.timestamp = transaction.timestamp
+
+      ElasticAPM.end_span(span)
     end
   end
 end
