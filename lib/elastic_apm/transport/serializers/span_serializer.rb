@@ -31,7 +31,7 @@ module ElasticAPM
         attr_reader :context_serializer
 
         def build(span)
-          {
+          payload = {
             span: {
               id: span.id,
               transaction_id: span.transaction.id,
@@ -40,13 +40,23 @@ module ElasticAPM
               type: join_type(span),
               duration: ms(span.duration),
               context: context_serializer.build(span.context),
-              stacktrace: span.stacktrace.to_a,
               timestamp: span.timestamp,
               trace_id: span.trace_id,
               sample_rate: span.sample_rate,
               outcome: keyword_field(span.outcome)
             }
           }
+
+          # Only include stacktrace if it exists, has frames, and frames are valid
+          if span.stacktrace && !span.stacktrace.to_a.empty?
+            stacktrace_array = span.stacktrace.to_a
+            # Check if at least one frame has valid data (filename or classname)
+            if stacktrace_array.any? { |frame| frame[:filename] || frame[:classname] }
+              payload[:span][:stacktrace] = stacktrace_array
+            end
+          end
+
+          payload
         end
 
         # @api private
