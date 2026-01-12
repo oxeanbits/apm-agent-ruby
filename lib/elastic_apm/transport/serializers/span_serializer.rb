@@ -47,10 +47,8 @@ module ElasticAPM
             }
           }
 
-          # Only include stacktrace if it exists, has frames, and frames are valid
           if span.stacktrace && !span.stacktrace.to_a.empty?
             stacktrace_array = span.stacktrace.to_a
-            # Check if at least one frame has valid data (filename or classname)
             if stacktrace_array.any? { |frame| frame[:filename] || frame[:classname] }
               payload[:span][:stacktrace] = stacktrace_array
             end
