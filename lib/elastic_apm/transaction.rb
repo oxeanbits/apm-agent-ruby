@@ -109,7 +109,6 @@ module ElasticAPM
       :notifications,
       :self_time,
       :span_frames_min_duration,
-      :started_spans,
       :trace_context,
       :transaction_max_spans,
       :config
