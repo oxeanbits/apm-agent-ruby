@@ -104,10 +104,13 @@ module ElasticAPM
     def register_queue_time(transaction, env)
       request_metrics = RequestMetrics.new(env)
       queue_time_micros = request_metrics.queue_time_micros
+
+      add_request_metrics_labels(transaction, request_metrics)
+
       return if queue_time_micros.zero?
 
       transaction.clock_start -= queue_time_micros
-      transaction.timestamp -= queue_time_micros # 350ms before
+      transaction.timestamp -= queue_time_micros
 
       span = ElasticAPM.start_span 'Queue Time', 'queue', subtype: 'nginx', action: 'awaiting'
 
@@ -115,6 +118,18 @@ module ElasticAPM
       span.timestamp = transaction.timestamp
 
       ElasticAPM.end_span(span)
+    end
+
+    def add_request_metrics_labels(transaction, request_metrics)
+      labels = transaction.context.labels
+
+      queue_time_ms = request_metrics.queue_time
+      labels[:queue_time_ms] = queue_time_ms if queue_time_ms > 0
+
+      network_time_ms = request_metrics.network_time
+      labels[:network_time_ms] = network_time_ms if network_time_ms > 0
+
+      labels[:request_id] = request_metrics.request_id if request_metrics.request_id
     end
   end
 end
