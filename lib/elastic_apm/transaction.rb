@@ -110,8 +110,6 @@ module ElasticAPM
       :self_time,
       :sample_rate,
       :span_frames_min_duration,
-      :started_spans,
-      :timestamp,
       :trace_context,
       :transaction_max_spans,
       :config
