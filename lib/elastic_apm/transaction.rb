@@ -95,7 +95,7 @@ module ElasticAPM
       :sampled,
       :sample_rate,
       :started_spans,
-      :clock_start,
+      :clock_start, 
       :timestamp
     )
 
@@ -108,6 +108,7 @@ module ElasticAPM
       :framework_name,
       :notifications,
       :self_time,
+      :sample_rate,
       :span_frames_min_duration,
       :trace_context,
       :transaction_max_spans,
