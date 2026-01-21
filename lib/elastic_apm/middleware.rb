@@ -35,6 +35,7 @@ module ElasticAPM
         end
 
         register_queue_time(transaction, env) if transaction
+        start_rack_stack_span(transaction) if transaction
 
         resp = @app.call env
       rescue InternalError
@@ -45,6 +46,12 @@ module ElasticAPM
         raise
       ensure
         if transaction
+          # Cleanup rack_stack_span if still open (request failed before controller)
+          if transaction.rack_stack_span
+            ElasticAPM.end_span(transaction.rack_stack_span)
+            transaction.rack_stack_span = nil
+          end
+
           if resp
             status, headers, _body = resp
             transaction.add_response(status, headers: headers.dup)
@@ -109,12 +116,24 @@ module ElasticAPM
       transaction.clock_start -= queue_time_micros
       transaction.timestamp -= queue_time_micros # 350ms before
 
-      span = ElasticAPM.start_span 'Queue Time', 'queue', subtype: 'nginx', action: 'awaiting'
+      span = ElasticAPM.start_span 'Queue Time', 'app', subtype: 'queue-time', action: 'awaiting'
 
       span.clock_start = transaction.clock_start
       span.timestamp = transaction.timestamp
 
       ElasticAPM.end_span(span)
+    end
+
+    def start_rack_stack_span(transaction)
+      span = ElasticAPM.start_span(
+        'Rack Stack',
+        'app',
+        subtype: 'rack-stack',
+        action: 'processing'
+      )
+      return unless span
+
+      transaction.rack_stack_span = span
     end
   end
 end
