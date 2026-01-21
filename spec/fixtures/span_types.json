@@ -25,6 +25,18 @@
         "__used_by": [
         ]
       },
+      "queue-time": {
+        "__description": "Queue time spent before request handling by rack middleware",
+        "__used_by": [
+          "ruby"
+        ]
+      },
+      "rack-stack": {
+        "__description": "Time spent in Rack stack before being handled by GraphQL",
+        "__used_by": [
+          "ruby"
+        ]
+      },
       "controller": {
         "__description": "Deprecated: use app.internal instead",
         "__used_by": [

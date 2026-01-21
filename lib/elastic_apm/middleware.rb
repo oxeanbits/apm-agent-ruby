@@ -117,6 +117,7 @@ module ElasticAPM
       transaction.timestamp -= queue_time_micros # 350ms before
 
       span = ElasticAPM.start_span 'Queue Time', 'app', subtype: 'queue-time', action: 'awaiting'
+      return unless span
 
       span.clock_start = transaction.clock_start
       span.timestamp = transaction.timestamp
