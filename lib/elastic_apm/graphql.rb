@@ -53,6 +53,12 @@ module ElasticAPM
       return yield unless KEYS_TO_NAME.key?(key)
       return yield unless (transaction = ElasticAPM.current_transaction)
 
+      # Finalize Rack Stack span on first GraphQL event
+      if transaction.rack_stack_span && key == 'lex'
+        ElasticAPM.end_span(transaction.rack_stack_span)
+        transaction.rack_stack_span = nil
+      end
+
       if key == 'execute_query'
         transaction.name =
           "#{PREFIX}#{query_name(data[:query])}"

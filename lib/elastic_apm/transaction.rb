@@ -87,7 +87,7 @@ module ElasticAPM
     end
     # rubocop:enable Metrics/ParameterLists
 
-    attr_accessor :name, :type, :result, :outcome, :clock_start, :timestamp
+    attr_accessor :name, :type, :result, :outcome, :clock_start, :timestamp, :rack_stack_span
 
     attr_reader(
       :breakdown_metrics,

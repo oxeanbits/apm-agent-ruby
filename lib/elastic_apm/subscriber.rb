@@ -25,6 +25,12 @@ module ElasticAPM
   class Subscriber
     include Logging
 
+    # Events that indicate the start of "real work" (end of rack middleware stack)
+    RACK_STACK_ENDING_EVENTS = %w[
+      process_action.action_controller
+      endpoint_run.grape
+    ].freeze
+
     def initialize(agent)
       @agent = agent
       @normalizers = Normalizers.build(agent.config)
@@ -48,6 +54,9 @@ module ElasticAPM
 
     def start(name, id, payload)
       return unless (transaction = @agent.current_transaction)
+
+      # Finalize Rack Stack span when first "real work" event starts
+      finish_rack_stack_span_if_needed(transaction, name)
 
       normalized = @normalizers.normalize(transaction, name, payload)
 
@@ -92,6 +101,14 @@ module ElasticAPM
 
     def notifications_regex
       @notifications_regex ||= /(#{@normalizers.keys.join('|')})/
+    end
+
+    def finish_rack_stack_span_if_needed(transaction, event_name)
+      return unless transaction.rack_stack_span
+      return unless RACK_STACK_ENDING_EVENTS.include?(event_name)
+
+      ElasticAPM.end_span(transaction.rack_stack_span)
+      transaction.rack_stack_span = nil
     end
   end
 end

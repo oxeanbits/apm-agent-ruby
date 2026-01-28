@@ -25,6 +25,18 @@
         "__used_by": [
         ]
       },
+      "queue-time": {
+        "__description": "Time between the request start timestamp (X-Request-Start from nginx) and when Rack processing begins; include reverse-proxy buffering and Puma queueing.",
+        "__used_by": [
+          "ruby"
+        ]
+      },
+      "rack-stack": {
+        "__description": "Time spent in Rack/framework middleware and routing after Rack starts, until the request reaches the handler (e.g. Rails controller and GraphQL).",
+        "__used_by": [
+          "ruby"
+        ]
+      },
       "controller": {
         "__description": "Deprecated: use app.internal instead",
         "__used_by": [
